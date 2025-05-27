@@ -52,11 +52,8 @@ SudokuGame/
 └── Program.cs                  # Точка входу
 ```
 ![image](https://github.com/user-attachments/assets/dcff6187-0f4c-49e9-be22-4a0f83a35ba7)
-Вигляд гри
 ![image](https://github.com/user-attachments/assets/c7c4a419-671e-44f3-8e60-e58a7b20d89e)
-Збереження
 ![image](https://github.com/user-attachments/assets/d18001a1-9431-49ab-bd48-215b6bd90e94)
-Рівні гри
 
 
 ## Programming Principles

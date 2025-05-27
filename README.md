@@ -29,7 +29,7 @@
 - Windows OS (для WinForms)
 
 ### Кроки запуску:
-1. Клонуйте репозиторій: `git clone []`
+1. Клонуйте репозиторій: `git clone [https://github.com/Margaryts/SudokuGame.git]`
 2. Відкрийте проєкт у Visual Studio
 3. Переконайтеся, що всі NuGet пакети встановлені
 4. Зберіть проєкт (Build → Build Solution)

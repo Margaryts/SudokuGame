@@ -179,6 +179,8 @@ SudokuGame/
 
 ### Гілки:
 - `main` - стабільна версія
+- `feature/add-models` - додавання моделей
+- `feature/add-logic-project` - додавання основної логіки
 
 
 ### Pull Request процес:

@@ -1,9 +1,10 @@
+using SudokuGame.View;
 using System;
 using System.Windows.Forms;
 
 namespace SudokuGame
 {
-    static class Program
+    internal static class Program
     {
         [STAThread]
         static void Main()

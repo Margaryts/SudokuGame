@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ipz23\\source\\repos\\SudokuGame\\SudokuGame\\SudokuGame.csproj": {}
+    "D:\\Уроки\\Конструювання програмного забезпечення\\pr\\SudokuGame\\SudokuGame\\SudokuGame.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ipz23\\source\\repos\\SudokuGame\\SudokuGame\\SudokuGame.csproj": {
+    "D:\\Уроки\\Конструювання програмного забезпечення\\pr\\SudokuGame\\SudokuGame\\SudokuGame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ipz23\\source\\repos\\SudokuGame\\SudokuGame\\SudokuGame.csproj",
+        "projectUniqueName": "D:\\Уроки\\Конструювання програмного забезпечення\\pr\\SudokuGame\\SudokuGame\\SudokuGame.csproj",
         "projectName": "SudokuGame",
-        "projectPath": "C:\\Users\\ipz23\\source\\repos\\SudokuGame\\SudokuGame\\SudokuGame.csproj",
-        "packagesPath": "C:\\Users\\ipz23\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ipz23\\source\\repos\\SudokuGame\\SudokuGame\\obj\\",
+        "projectPath": "D:\\Уроки\\Конструювання програмного забезпечення\\pr\\SudokuGame\\SudokuGame\\SudokuGame.csproj",
+        "packagesPath": "C:\\Users\\Asus\\.nuget\\packages\\",
+        "outputPath": "D:\\Уроки\\Конструювання програмного забезпечення\\pr\\SudokuGame\\SudokuGame\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ipz23\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Asus\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,7 +43,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net7.0-windows7.0": {
@@ -60,24 +60,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[7.0.20, 7.0.20]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[7.0.20, 7.0.20]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[7.0.20, 7.0.20]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[7.0.20, 7.0.20]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
@@ -86,7 +68,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.406\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -69,29 +69,7 @@ namespace SudokuGame.Services
 
             try
             {
-                int[][] gridArray = new int[9][];
-                bool[][] isInitialArray = new bool[9][];
-
-                for (int i = 0; i < 9; i++)
-                {
-                    gridArray[i] = new int[9];
-                    isInitialArray[i] = new bool[9];
-                    for (int j = 0; j < 9; j++)
-                    {
-                        gridArray[i][j] = CurrentGame.Grid.Grid[i, j];
-                        isInitialArray[i][j] = CurrentGame.Grid.IsInitial[i, j];
-                    }
-                }
-
-                var saveData = new
-                {
-                    Grid = gridArray,
-                    IsInitial = isInitialArray,
-                    Difficulty = (int)CurrentGame.Difficulty,
-                    ElapsedTime = CurrentGame.ElapsedTime.TotalSeconds,
-                    Mistakes = CurrentGame.Mistakes,
-                    StartTime = CurrentGame.StartTime.ToBinary()
-                };
+                SaveDataDTO saveData = CreateSaveDataDTO();
 
                 string json = JsonSerializer.Serialize(saveData, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(filePath, json);
@@ -106,55 +84,85 @@ namespace SudokuGame.Services
         {
             try
             {
-                if (!File.Exists(filePath))
-                    return false;
-
-                string json = File.ReadAllText(filePath);
-                var saveData = JsonSerializer.Deserialize<JsonElement>(json);
-
-                var difficulty = (DifficultyLevel)saveData.GetProperty("Difficulty").GetInt32();
-                CurrentGame = new GameState(difficulty);
-
-                var gridProperty = saveData.GetProperty("Grid");
-                var isInitialProperty = saveData.GetProperty("IsInitial");
-                int[,] grid = new int[9, 9];
-                bool[,] isInitial = new bool[9, 9];
-
-                for (int i = 0; i < 9; i++)
-                {
-                    for (int j = 0; j < 9; j++)
-                    {
-                        grid[i, j] = gridProperty[i][j].GetInt32();
-                        isInitial[i, j] = isInitialProperty[i][j].GetBoolean();
-                    }
-                }
-
-                CurrentGame.Grid.SetInitialGrid(grid);
-
-                // Manually set the IsInitial array
-                for (int i = 0; i < 9; i++)
-                {
-                    for (int j = 0; j < 9; j++)
-                    {
-                        if (!isInitial[i, j] && grid[i, j] != 0)
-                        {
-                            // This is a user-entered value, not initial
-                            CurrentGame.Grid.SetCell(i, j, grid[i, j]);
-                        }
-                    }
-                }
-
-                // Load other properties
-                CurrentGame.ElapsedTime = TimeSpan.FromSeconds(saveData.GetProperty("ElapsedTime").GetDouble());
-                CurrentGame.Mistakes = saveData.GetProperty("Mistakes").GetInt32();
-                CurrentGame.StartTime = DateTime.FromBinary(saveData.GetProperty("StartTime").GetInt64());
-
+                SaveDataDTO saveData = DeserializeSaveData(filePath);
+                InitializeGameFromSaveData(saveData);
                 return true;
             }
             catch (Exception)
             {
                 return false;
             }
+        }
+
+        private SaveDataDTO CreateSaveDataDTO()
+        {
+            int[][] gridArray = new int[9][];
+            bool[][] isInitialArray = new bool[9][];
+
+            for (int i = 0; i < 9; i++)
+            {
+                gridArray[i] = new int[9];
+                isInitialArray[i] = new bool[9];
+                for (int j = 0; j < 9; j++)
+                {
+                    gridArray[i][j] = CurrentGame.Grid.Grid[i, j];
+                    isInitialArray[i][j] = CurrentGame.Grid.IsInitial[i, j];
+                }
+            }
+
+            return new SaveDataDTO
+            {
+                Grid = gridArray,
+                IsInitial = isInitialArray,
+                Difficulty = (int)CurrentGame.Difficulty,
+                ElapsedTime = CurrentGame.ElapsedTime.TotalSeconds,
+                Mistakes = CurrentGame.Mistakes,
+                StartTime = CurrentGame.StartTime.ToBinary()
+            };
+        }
+
+        private SaveDataDTO DeserializeSaveData(string filePath)
+        {
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($"Save file not found at {filePath}");
+
+            string json = File.ReadAllText(filePath);
+            return JsonSerializer.Deserialize<SaveDataDTO>(json);
+        }
+
+        private void InitializeGameFromSaveData(SaveDataDTO saveData)
+        {
+            var difficulty = (DifficultyLevel)saveData.Difficulty;
+            CurrentGame = new GameState(difficulty);
+
+            int[,] grid = new int[9, 9];
+            bool[,] isInitial = new bool[9, 9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    grid[i, j] = saveData.Grid[i][j];
+                    isInitial[i, j] = saveData.IsInitial[i][j];
+                }
+            }
+
+            CurrentGame.Grid.SetInitialGrid(grid);
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    if (!isInitial[i, j] && grid[i, j] != 0)
+                    {
+                        CurrentGame.Grid.SetCell(i, j, grid[i, j]);
+                    }
+                }
+            }
+
+            CurrentGame.ElapsedTime = TimeSpan.FromSeconds(saveData.ElapsedTime);
+            CurrentGame.Mistakes = saveData.Mistakes;
+            CurrentGame.StartTime = DateTime.FromBinary(saveData.StartTime);
         }
     }
 }

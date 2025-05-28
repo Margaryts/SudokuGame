@@ -6,7 +6,6 @@ using SudokuGame.Services;
 using SudokuGame.UI;
 using Timer = System.Windows.Forms.Timer;
 
-
 namespace SudokuGame
 {
     public partial class MainForm : Form
@@ -26,21 +25,38 @@ namespace SudokuGame
 
         private void InitializeComponent()
         {
+            InitializeFormSettings();
+
+            Panel mainPanel = CreateMainPanel();
+            Controls.Add(mainPanel);
+
+            AddTitleLabel(mainPanel);
+            AddInfoPanel(mainPanel);
+            CreateGameGrid(mainPanel);
+            CreateControlButtons(mainPanel);
+            InitializeGameTimer();
+        }
+
+        private void InitializeFormSettings()
+        {
             Text = "Sudoku Game";
             Size = new Size(600, 700);
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
+        }
 
-            // Create main panel
-            Panel mainPanel = new Panel
+        private Panel CreateMainPanel()
+        {
+            return new Panel
             {
                 Dock = DockStyle.Fill,
                 Padding = new Padding(20)
             };
-            Controls.Add(mainPanel);
+        }
 
-            // Create title
+        private void AddTitleLabel(Panel mainPanel)
+        {
             Label titleLabel = new Label
             {
                 Text = "SUDOKU",
@@ -50,8 +66,10 @@ namespace SudokuGame
                 Location = new Point(250, 10)
             };
             mainPanel.Controls.Add(titleLabel);
+        }
 
-            // Create info panel
+        private void AddInfoPanel(Panel mainPanel)
+        {
             Panel infoPanel = new Panel
             {
                 Location = new Point(20, 50),
@@ -77,17 +95,6 @@ namespace SudokuGame
                 AutoSize = true
             };
             infoPanel.Controls.Add(_mistakesLabel);
-
-            // Create game grid
-            CreateGameGrid(mainPanel);
-
-            // Create control buttons
-            CreateControlButtons(mainPanel);
-
-            // Initialize timer
-            _gameTimer = new Timer();
-            _gameTimer.Interval = 1000; // 1 second
-            _gameTimer.Tick += OnTimerTick;
         }
 
         private void CreateGameGrid(Panel parent)
@@ -107,11 +114,13 @@ namespace SudokuGame
             {
                 for (int col = 0; col < 9; col++)
                 {
-                    SudokuCell cell = new SudokuCell(row, col);
-                    cell.Location = new Point(
-                        col * 40 + (col / 3) * 2 + 2,
-                        row * 40 + (row / 3) * 2 + 2
-                    );
+                    SudokuCell cell = new SudokuCell(row, col)
+                    {
+                        Location = new Point(
+                            col * 40 + (col / 3) * 2 + 2,
+                            row * 40 + (row / 3) * 2 + 2
+                        )
+                    };
                     cell.CellValueChanged += OnCellValueChanged;
 
                     _cells[row, col] = cell;
@@ -129,79 +138,41 @@ namespace SudokuGame
             };
             parent.Controls.Add(buttonPanel);
 
-            Button newGameButton = new Button
-            {
-                Text = "New Game",
-                Size = new Size(140, 40),
-                Location = new Point(10, 10),
-                Font = new Font("Arial", 10, FontStyle.Bold),
-                BackColor = Color.LightBlue
-            };
-            newGameButton.Click += OnNewGameClick;
-            buttonPanel.Controls.Add(newGameButton);
+            AddButton(buttonPanel, "New Game", new Point(10, 10), OnNewGameClick, Color.LightBlue);
 
-            // Difficulty buttons
             string[] difficulties = { "Easy", "Medium", "Hard", "Expert" };
             DifficultyLevel[] levels = { DifficultyLevel.Easy, DifficultyLevel.Medium, DifficultyLevel.Hard, DifficultyLevel.Expert };
 
             for (int i = 0; i < difficulties.Length; i++)
             {
-                Button diffButton = new Button
-                {
-                    Text = difficulties[i],
-                    Size = new Size(140, 30),
-                    Location = new Point(10, 60 + i * 35),
-                    Tag = levels[i],
-                    Font = new Font("Arial", 9, FontStyle.Bold),
-                    BackColor = Color.LightGreen
-                };
-                diffButton.Click += OnDifficultyClick;
-                buttonPanel.Controls.Add(diffButton);
+                AddButton(buttonPanel, difficulties[i], new Point(10, 60 + i * 35), OnDifficultyClick, Color.LightGreen, levels[i]);
             }
 
-            Button resetButton = new Button
-            {
-                Text = "Reset",
-                Size = new Size(140, 30),
-                Location = new Point(10, 210),
-                Font = new Font("Arial", 9, FontStyle.Bold),
-                BackColor = Color.LightCoral
-            };
-            resetButton.Click += OnResetClick;
-            buttonPanel.Controls.Add(resetButton);
+            AddButton(buttonPanel, "Reset", new Point(10, 210), OnResetClick, Color.LightCoral);
+            AddButton(buttonPanel, "Save Game", new Point(10, 250), OnSaveClick, Color.LightYellow);
+            AddButton(buttonPanel, "Load Game", new Point(10, 290), OnLoadClick, Color.LightYellow);
+            AddButton(buttonPanel, "Check Solution", new Point(10, 330), OnCheckClick, Color.Lavender);
+        }
 
-            Button saveButton = new Button
+        private void AddButton(Control parent, string text, Point location, EventHandler clickHandler, Color color, object tag = null)
+        {
+            Button button = new Button
             {
-                Text = "Save Game",
+                Text = text,
                 Size = new Size(140, 30),
-                Location = new Point(10, 250),
+                Location = location,
                 Font = new Font("Arial", 9, FontStyle.Bold),
-                BackColor = Color.LightYellow
+                BackColor = color,
+                Tag = tag
             };
-            saveButton.Click += OnSaveClick;
-            buttonPanel.Controls.Add(saveButton);
+            button.Click += clickHandler;
+            parent.Controls.Add(button);
+        }
 
-            Button loadButton = new Button
-            {
-                Text = "Load Game",
-                Size = new Size(140, 30),
-                Location = new Point(10, 290),
-                Font = new Font("Arial", 9, FontStyle.Bold),
-                BackColor = Color.LightYellow
-            };
-            loadButton.Click += OnLoadClick;
-            buttonPanel.Controls.Add(loadButton);
-
-            Button checkButton = new Button
-            {
-                Text = "Check Solution",
-                Size = new Size(140, 30),
-                Location = new Point(10, 330),
-                Font = new Font("Arial", 9, FontStyle.Bold),
-                BackColor = Color.Lavender
-            };
-            checkButton.Click += OnCheckClick;
-            buttonPanel.Controls.Add(checkButton);
+        private void InitializeGameTimer()
+        {
+            _gameTimer = new Timer { Interval = 1000 };
+            _gameTimer.Tick += OnTimerTick;
         }
 
         private void InitializeGame()
@@ -257,12 +228,7 @@ namespace SudokuGame
             }
         }
 
-        private void OnNewGameClick(object sender, EventArgs e)
-        {
-            _gameManager.StartNewGame(DifficultyLevel.Medium);
-            UpdateUI();
-            _gameTimer.Start();
-        }
+        private void OnNewGameClick(object sender, EventArgs e) => InitializeGame();
 
         private void OnDifficultyClick(object sender, EventArgs e)
         {
@@ -282,44 +248,44 @@ namespace SudokuGame
 
         private void OnSaveClick(object sender, EventArgs e)
         {
-            using (SaveFileDialog dialog = new SaveFileDialog())
+            using SaveFileDialog dialog = new SaveFileDialog
             {
-                dialog.Filter = "Sudoku files (*.sud)|*.sud|All files (*.*)|*.*";
-                dialog.DefaultExt = "sud";
+                Filter = "Sudoku files (*.sud)|*.sud|All files (*.*)|*.*",
+                DefaultExt = "sud"
+            };
 
-                if (dialog.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                try
                 {
-                    try
-                    {
-                        _gameManager.SaveGame(dialog.FileName);
-                        MessageBox.Show("Game saved successfully!", "Save Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error saving game: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    _gameManager.SaveGame(dialog.FileName);
+                    MessageBox.Show("Game saved successfully!", "Save Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving game: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
         private void OnLoadClick(object sender, EventArgs e)
         {
-            using (OpenFileDialog dialog = new OpenFileDialog())
+            using OpenFileDialog dialog = new OpenFileDialog
             {
-                dialog.Filter = "Sudoku files (*.sud)|*.sud|All files (*.*)|*.*";
+                Filter = "Sudoku files (*.sud)|*.sud|All files (*.*)|*.*"
+            };
 
-                if (dialog.ShowDialog() == DialogResult.OK)
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                if (_gameManager.LoadGame(dialog.FileName))
                 {
-                    if (_gameManager.LoadGame(dialog.FileName))
-                    {
-                        UpdateUI();
-                        _gameTimer.Start();
-                        MessageBox.Show("Game loaded successfully!", "Load Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error loading game file!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    UpdateUI();
+                    _gameTimer.Start();
+                    MessageBox.Show("Game loaded successfully!", "Load Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Error loading game file!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

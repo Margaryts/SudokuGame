@@ -161,5 +161,10 @@ namespace SudokuGame
             _gameTimer?.Dispose();
             base.OnFormClosed(e);
         }
+
+        private void InitializeComponent()
+        {
+
+        }
     }
 }

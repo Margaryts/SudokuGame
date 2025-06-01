@@ -11,6 +11,7 @@ namespace SudokuGame
     public partial class MainForm : Form
     {
         private readonly IGameManager _gameManager;
+        private readonly IGamePersistenceService _persistenceService;
         private SudokuCell[,] _cells;
         private Label _timeLabel;
         private Label _mistakesLabel;
@@ -18,7 +19,9 @@ namespace SudokuGame
 
         public MainForm()
         {
-            _gameManager = new GameManager(new SudokuGenerator());
+            var generator = new SudokuGenerator();
+            var persistence = new JsonGamePersistenceService();
+            _gameManager = new GameManager(generator, persistence);
             InitializeComponent();
             InitializeGame();
         }

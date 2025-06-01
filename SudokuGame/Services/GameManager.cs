@@ -8,11 +8,14 @@ namespace SudokuGame.Services
     public class GameManager : IGameManager
     {
         private readonly ISudokuGenerator _generator;
+        private readonly IGamePersistenceService _persistenceService;
+
         public GameState CurrentGame { get; private set; }
 
-        public GameManager(ISudokuGenerator generator)
+        public GameManager(ISudokuGenerator generator, IGamePersistenceService persistenceService)
         {
             _generator = generator ?? throw new ArgumentNullException(nameof(generator));
+            _persistenceService = persistenceService ?? throw new ArgumentNullException(nameof(persistenceService));
         }
 
         public void StartNewGame(DifficultyLevel difficulty)
@@ -32,137 +35,45 @@ namespace SudokuGame.Services
                 CurrentGame.Grid.SetCell(row, col, value);
                 return true;
             }
-            else
-            {
-                CurrentGame.Mistakes++;
-                return false;
-            }
+
+            CurrentGame.Mistakes++;
+            return false;
         }
 
-        public void ClearCell(int row, int col)
-        {
+        public void ClearCell(int row, int col) =>
             CurrentGame?.Grid?.SetCell(row, col, 0);
-        }
 
-        public void ResetGame()
-        {
+        public void ResetGame() =>
             CurrentGame?.Reset();
-        }
 
         public bool CheckWin()
         {
             if (CurrentGame?.Grid == null)
                 return false;
 
-            bool isComplete = CurrentGame.Grid.IsComplete();
-            if (isComplete)
+            if (CurrentGame.Grid.IsComplete())
             {
                 CurrentGame.IsCompleted = true;
+                return true;
             }
-            return isComplete;
+
+            return false;
         }
 
-        public void SaveGame(string filePath)
-        {
-            if (CurrentGame == null)
-                return;
-
-            try
-            {
-                SaveDataDTO saveData = CreateSaveDataDTO();
-
-                string json = JsonSerializer.Serialize(saveData, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(filePath, json);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to save game: {ex.Message}", ex);
-            }
-        }
+        public void SaveGame(string filePath) =>
+            _persistenceService.SaveGame(CurrentGame, filePath);
 
         public bool LoadGame(string filePath)
         {
             try
             {
-                SaveDataDTO saveData = DeserializeSaveData(filePath);
-                InitializeGameFromSaveData(saveData);
+                CurrentGame = _persistenceService.LoadGame(filePath);
                 return true;
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
-        }
-
-        private SaveDataDTO CreateSaveDataDTO()
-        {
-            int[][] gridArray = new int[9][];
-            bool[][] isInitialArray = new bool[9][];
-
-            for (int i = 0; i < 9; i++)
-            {
-                gridArray[i] = new int[9];
-                isInitialArray[i] = new bool[9];
-                for (int j = 0; j < 9; j++)
-                {
-                    gridArray[i][j] = CurrentGame.Grid.Grid[i, j];
-                    isInitialArray[i][j] = CurrentGame.Grid.IsInitial[i, j];
-                }
-            }
-
-            return new SaveDataDTO
-            {
-                Grid = gridArray,
-                IsInitial = isInitialArray,
-                Difficulty = (int)CurrentGame.Difficulty,
-                ElapsedTime = CurrentGame.ElapsedTime.TotalSeconds,
-                Mistakes = CurrentGame.Mistakes,
-                StartTime = CurrentGame.StartTime.ToBinary()
-            };
-        }
-
-        private SaveDataDTO DeserializeSaveData(string filePath)
-        {
-            if (!File.Exists(filePath))
-                throw new FileNotFoundException($"Save file not found at {filePath}");
-
-            string json = File.ReadAllText(filePath);
-            return JsonSerializer.Deserialize<SaveDataDTO>(json);
-        }
-
-        private void InitializeGameFromSaveData(SaveDataDTO saveData)
-        {
-            var difficulty = (DifficultyLevel)saveData.Difficulty;
-            CurrentGame = new GameState(difficulty);
-
-            int[,] grid = new int[9, 9];
-            bool[,] isInitial = new bool[9, 9];
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    grid[i, j] = saveData.Grid[i][j];
-                    isInitial[i, j] = saveData.IsInitial[i][j];
-                }
-            }
-
-            CurrentGame.Grid.SetInitialGrid(grid);
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    if (!isInitial[i, j] && grid[i, j] != 0)
-                    {
-                        CurrentGame.Grid.SetCell(i, j, grid[i, j]);
-                    }
-                }
-            }
-
-            CurrentGame.ElapsedTime = TimeSpan.FromSeconds(saveData.ElapsedTime);
-            CurrentGame.Mistakes = saveData.Mistakes;
-            CurrentGame.StartTime = DateTime.FromBinary(saveData.StartTime);
         }
     }
 }

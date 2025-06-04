@@ -4,93 +4,63 @@ namespace SudokuGame.Models
 {
     public class SudokuGrid
     {
-        private int[,] _grid;
-        private int[,] _solution;
-        private bool[,] _isInitial;
+        private const int GridSize = 9;
+        private const int BoxSize = 3;
+
+        private readonly int[,] _grid = new int[GridSize, GridSize];
+        private readonly int[,] _solution = new int[GridSize, GridSize];
+        private readonly bool[,] _isInitial = new bool[GridSize, GridSize];
 
         public int[,] Grid => _grid;
         public bool[,] IsInitial => _isInitial;
 
-        public SudokuGrid()
-        {
-            _grid = new int[9, 9];
-            _solution = new int[9, 9];
-            _isInitial = new bool[9, 9];
-        }
-
         public void SetCell(int row, int col, int value)
         {
-            if (IsValidPosition(row, col) && !_isInitial[row, col])
-            {
+            if (IsEditable(row, col))
                 _grid[row, col] = value;
-            }
         }
 
-        public int GetCell(int row, int col)
-        {
-            return IsValidPosition(row, col) ? _grid[row, col] : 0;
-        }
+        public int GetCell(int row, int col) => IsValidPosition(row, col) ? _grid[row, col] : 0;
 
-        public bool IsInitialCell(int row, int col)
-        {
-            return IsValidPosition(row, col) && _isInitial[row, col];
-        }
+        public bool IsInitialCell(int row, int col) => IsValidPosition(row, col) && _isInitial[row, col];
 
         public void SetInitialGrid(int[,] initialGrid)
         {
-            for (int i = 0; i < 9; i++)
+            ForEachCell((i, j) =>
             {
-                for (int j = 0; j < 9; j++)
-                {
-                    _grid[i, j] = initialGrid[i, j];
-                    _solution[i, j] = initialGrid[i, j];
-                    _isInitial[i, j] = initialGrid[i, j] != 0;
-                }
-            }
+                int value = initialGrid[i, j];
+                _grid[i, j] = value;
+                _solution[i, j] = value;
+                _isInitial[i, j] = value != 0;
+            });
         }
 
         public bool IsValidMove(int row, int col, int value)
         {
-            if (!IsValidPosition(row, col) || value < 1 || value > 9)
+            if (!IsEditable(row, col) || value < 1 || value > 9)
                 return false;
 
-            if (_isInitial[row, col])
-                return false;
-
-            // Temporarily place the value
-            int originalValue = _grid[row, col];
+            int original = _grid[row, col];
             _grid[row, col] = value;
 
-            bool isValid = IsValidGrid();
-
-            // Restore original value
-            _grid[row, col] = originalValue;
-
-            return isValid;
+            bool valid = IsValidGrid();
+            _grid[row, col] = original;
+            return valid;
         }
 
         public bool IsValidGrid()
         {
-            // Check rows
-            for (int row = 0; row < 9; row++)
+            for (int i = 0; i < GridSize; i++)
             {
-                if (!IsValidUnit(GetRow(row)))
+                if (!IsValidUnit(GetRow(i)) || !IsValidUnit(GetColumn(i)))
                     return false;
             }
 
-            // Check columns
-            for (int col = 0; col < 9; col++)
+            for (int row = 0; row < GridSize; row += BoxSize)
             {
-                if (!IsValidUnit(GetColumn(col)))
-                    return false;
-            }
-
-            // Check 3x3 boxes
-            for (int boxRow = 0; boxRow < 3; boxRow++)
-            {
-                for (int boxCol = 0; boxCol < 3; boxCol++)
+                for (int col = 0; col < GridSize; col += BoxSize)
                 {
-                    if (!IsValidUnit(GetBox(boxRow, boxCol)))
+                    if (!IsValidUnit(GetBox(row, col)))
                         return false;
                 }
             }
@@ -100,85 +70,74 @@ namespace SudokuGame.Models
 
         public bool IsComplete()
         {
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
+            for (int i = 0; i < GridSize; i++)
+                for (int j = 0; j < GridSize; j++)
                     if (_grid[i, j] == 0)
                         return false;
-                }
-            }
+
             return IsValidGrid();
         }
 
-        private bool IsValidPosition(int row, int col)
+        public void Clear()
         {
-            return row >= 0 && row < 9 && col >= 0 && col < 9;
+            ForEachCell((i, j) =>
+            {
+                if (!_isInitial[i, j])
+                    _grid[i, j] = 0;
+            });
+        }
+
+        // 🔧 Допоміжні методи
+
+        private bool IsValidPosition(int row, int col) =>
+            row >= 0 && row < GridSize && col >= 0 && col < GridSize;
+
+        private bool IsEditable(int row, int col) =>
+            IsValidPosition(row, col) && !_isInitial[row, col];
+
+        private void ForEachCell(Action<int, int> action)
+        {
+            for (int i = 0; i < GridSize; i++)
+                for (int j = 0; j < GridSize; j++)
+                    action(i, j);
         }
 
         private int[] GetRow(int row)
         {
-            int[] result = new int[9];
-            for (int col = 0; col < 9; col++)
-            {
+            var result = new int[GridSize];
+            for (int col = 0; col < GridSize; col++)
                 result[col] = _grid[row, col];
-            }
             return result;
         }
 
         private int[] GetColumn(int col)
         {
-            int[] result = new int[9];
-            for (int row = 0; row < 9; row++)
-            {
+            var result = new int[GridSize];
+            for (int row = 0; row < GridSize; row++)
                 result[row] = _grid[row, col];
-            }
             return result;
         }
 
-        private int[] GetBox(int boxRow, int boxCol)
+        private int[] GetBox(int startRow, int startCol)
         {
-            int[] result = new int[9];
+            var result = new int[GridSize];
             int index = 0;
-
-            for (int row = boxRow * 3; row < (boxRow + 1) * 3; row++)
-            {
-                for (int col = boxCol * 3; col < (boxCol + 1) * 3; col++)
-                {
-                    result[index++] = _grid[row, col];
-                }
-            }
+            for (int i = 0; i < BoxSize; i++)
+                for (int j = 0; j < BoxSize; j++)
+                    result[index++] = _grid[startRow + i, startCol + j];
             return result;
         }
 
         private bool IsValidUnit(int[] unit)
         {
-            bool[] seen = new bool[10]; // Index 0 unused, 1-9 for numbers
-
-            foreach (int value in unit)
+            var seen = new bool[GridSize + 1]; // 0..9
+            foreach (int val in unit)
             {
-                if (value != 0)
-                {
-                    if (seen[value])
-                        return false;
-                    seen[value] = true;
-                }
+                if (val != 0 && seen[val])
+                    return false;
+                seen[val] = true;
             }
             return true;
-        }
-
-        public void Clear()
-        {
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    if (!_isInitial[i, j])
-                    {
-                        _grid[i, j] = 0;
-                    }
-                }
-            }
         }
     }
 }
